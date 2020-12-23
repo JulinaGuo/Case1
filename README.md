@@ -1,16 +1,16 @@
-# Case1
-Gaming industry optimal portfolio
+# Case1: Gaming industry optimal portfolio
 
-## Stock Sets (currency: USD)
+### Overview
+The purpose of the project is to create a portfolio with gaming industry stocks.
+
+### Stock Set (currency: USD)
 * Nintendo (NTDOY)
 * Electronic Arts (EA)
 * Activision Blizzard (ATVI)
 * Sony (SNE)
 * Ubisoft (UBSFY)
 
-## Create a optimal Portfolio
-
-1. Import module
+### Data cleaning
 ```
 import ffn
 import numpy as np
@@ -22,10 +22,7 @@ import cvxopt as opt
 from cvxopt import blas, solvers
 import scipy as sci
 from scipy import stats
-```
 
-2. Download data from Yahoo Finance
-```
 stock_price = ffn.get('NTDOY, EA, ATVI, SNE, UBSFY', start = '2020-01-01')
 py.figure(figsize = (12, 6))
 py.plot(stock_price['ntdoy'], label = 'Nintendo')
@@ -38,8 +35,8 @@ py.grid(True)
 ```
 ![](https://i.imgur.com/71l0aTe.png)
 
-3. Rebase stock price change
 ```
+# Rebase stock price change
 py.figure(figsize = (12, 6))
 py.plot(stock_price['ntdoy'].rebase(), label = 'Nintendo')
 py.plot(stock_price['ea'].rebase(), label = 'Electronic Arts')
@@ -51,19 +48,20 @@ py.grid(True)
 ```
 ![](https://i.imgur.com/MKbM4u4.png)
 
-4. Observe the correlation between stocks
+### Descriptive analysis
+
 ```
+# Observe the correlation between stocks
 stock_price.plot_corr_heatmap()
 ```
 ![](https://i.imgur.com/CTBPaGu.png)
 
-5. Aquire daily price variation
+
 ```
+# Aquire daily price variation
 pct_change = stock_price.pct_change().dropna()
-print(pct_change)
-```
-6. Observe the distribution of price variation
-```
+
+# Observe the distribution of price variation
 py.figure(figsize = (12,6))
 pct_change['ntdoy'].plot.hist(alpha = 0.5, bins = 100, legend = True)
 pct_change['ea'].plot.hist(alpha = 0.5, bins = 100, legend = True)
@@ -73,8 +71,8 @@ pct_change['ubsfy'].plot.hist(alpha = 0.5, bins = 100, legend = True)
 ```
 ![](https://i.imgur.com/YVuABah.png)
 
-7. Observe the volatility of  sigle stock
 ```
+# Observe the volatility of  sigle stock
 # Acquire standard deviation of stocks
 volatility = pct_change.std()
 print(volatility)
@@ -82,19 +80,17 @@ print(volatility)
 # Plot the variaton through time line
 graph = pct_change.plot(figsize = (12,6), grid = True)
 graph.set_ylabel('Return Rate')
-```
 
-8. Annualize price variation
-```
+# Annualize price variation
 days = stock_price.shape[0]
 assets = stock_price.shape[1]
 print(pct_change)
 annualized_return_rate = ((1 + pct_change).cumprod() ** (1 / days))[-1:] ** 252 - 1
-print(annualized_return_rate)
 ```
 
-9. Apply Mean-Variance Analysis to portfolio
+### Model building
 ```
+# Apply Mean-Variance Analysis to portfolio
 def generate_one_portfolio(pct_change):
   # randomly get a asset allocation
   weight = np.random.random(pct_change.shape[1])
@@ -122,8 +118,9 @@ py.grid()
 ```
 ![](https://i.imgur.com/3xadlNT.png)
 
-10. Calculate the optimal asset allocation
+
 ```
+# Calculate the optimal asset allocation
 def opt_portfolio(pct_change):
     
     n = pct_change.shape[1]
@@ -187,16 +184,18 @@ py.grid()
 ```
 ![](https://i.imgur.com/2SEngSD.png)
 
-11. Based on the risk-free rate, the optimal asset allocation
+
 ```
+# Based on the risk-free rate, acquire the optimal asset allocation based on CAPM
 py.figure(figsize = (5, 5))
 py.pie(list(opt_weight), labels = pct_change.columns.values, autopct = "%1.2f%%"), 
 py.title("Ingredient of Portfolio")
 ```
 ![](https://i.imgur.com/5TQVJqa.png)
 
-12. Observe the portfolio value under buy-and-hold
+### Validation
 ```
+# Observe the portfolio value under buy-and-hold
 pct_change['Equally Weighted'] = pct_change.dot(np.ones((assets, 1)) / assets)
 pct_change['Opt Portfolio'] = pct_change.iloc[:, 0:assets].dot(opt_weight)
 
